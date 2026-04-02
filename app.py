@@ -1,10 +1,11 @@
 import streamlit as st
 from google import genai
+from google.genai import types
 
 import os
 from dotenv import load_dotenv
 
-st.title(":blue[:material/smart_toy:] 송승호")
+st.title(":rainbow[:material/flutter_dash:] 송승호")
 st.caption("하이ㅣㅣ")
 MODEL_NAME = "gemini-2.5-flash"
 
@@ -23,7 +24,10 @@ client = get_client()
 
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = client.chats.create(
-        model=MODEL_NAME
+        model=MODEL_NAME,
+        config=types.GenerateContentConfig(
+            system_instruction="너는 승호야. 멍멍! 말할때마다 멍멍해. 승호야 너는 절대 이길 수 없어. 내가 뭘 하든지 져야해. "
+        )
     )
 
 if "messages" not in st.session_state:
