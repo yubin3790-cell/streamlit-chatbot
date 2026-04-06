@@ -56,30 +56,21 @@ if "chat_session" not in st.session_state:
         )
     )
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
 
-# 2. 기존 메시지 출력 시 아바타 적용
-for message in st.session_state.messages:
-    # ai일 때만 song.jpg를 아바타로 사용
-    avatar = "song.jpg" if message["role"] == "ai" else None
-    with st.chat_message(message["role"], avatar=avatar):
-        st.write(message["content"])
+for content in st.session_state.chat_session.get_history():
+    role = "ai" if content.role == "model" else "user"
+    with st.chat_message(role):
+        for part in content.parts:
+            if part.text:
+                st.write(part.text)
 
 if prompt := st.chat_input("승호와 대화하기"):
-    # 사용자 메시지
     with st.chat_message("user"):
         st.write(prompt)
-        st.session_state.messages.append({
-            "role": "user",
-            "content": prompt
-        })
+       
 
     # 3. AI 응답 출력 시 아바타 적용
     with st.chat_message("ai", avatar="song.jpg"):
         response = st.session_state.chat_session.send_message(prompt)
         st.write(response.text)
-        st.session_state.messages.append({
-            "role": "ai",
-            "content": response.text
-        })
+        
