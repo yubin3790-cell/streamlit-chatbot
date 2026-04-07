@@ -4,6 +4,9 @@ from google.genai import types
 import os
 from dotenv import load_dotenv
 
+import serial
+import json
+
 # 페이지 설정 (브라우저 탭 아이콘도 song.jpg로 설정 가능)
 st.set_page_config(page_title="승호 챗봇", page_icon="song.jpg")
 
@@ -31,6 +34,47 @@ def get_client():
     
 client = get_client()
 
+port = st.text_input("포트", value="COM3")
+
+@st.cache_resource
+def get_ser(port):
+    try:
+        return serial.Serial(port, 115200, timeout=1)
+    except Exception as e:
+        st.write(e)
+        return None
+
+ser = get_ser(port)
+
+if ser is not None:
+    st.success(f"{port} 연결 성공!")
+else:
+    st.error(f"{port}를 찾을 수 없습니다.")
+
+def hex_to_rgb(hex_code):
+    hex_code = hex_code.lstrip('#')
+    r = int(hex_code[0:2], 16)
+    g = int(hex_code[2:4], 16)
+    b = int(hex_code[4:6], 16)
+
+    return (r, g, b)
+
+def set_color(color):
+   
+    r,g,b = hex_to_rgb(color)
+
+    payload = {
+        "type": "pixel",
+        "r": r,
+        "g": g,
+        "b": b
+    }
+
+
+    if ser and ser.is_open:
+        message = json.dumps(payload)
+        ser.write(message.encode())
+
 if "box_color" not in st.session_state:
     st.session_state.box_color = "#FFFFFF"
 
@@ -42,6 +86,8 @@ def change_color(hex_code: str) -> dict:
         hex_code (str): 색상의 HEX 코드 (예: "#87CEEB")
     """
     st.session_state.box_color = hex_code
+
+    set_color(hex_code)
 
     return {
         "status": "success",
